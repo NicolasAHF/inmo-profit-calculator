@@ -4,7 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calculator, TrendingUp, AlertCircle, PiggyBank } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Calculator, TrendingUp, AlertCircle, PiggyBank, CreditCard } from "lucide-react";
 
 interface CalculationResult {
   monthlyProfit: number;
@@ -12,6 +13,8 @@ interface CalculationResult {
   roi: number;
   breakEvenMonths: number;
   totalInvestment: number;
+  monthlyMortgagePayment?: number;
+  totalMortgageAmount?: number;
 }
 
 export function ROICalculator() {
@@ -23,14 +26,45 @@ export function ROICalculator() {
     monthlyExpenses: 150,
     annualTaxes: 1200,
     insurance: 600,
+    // Financiamiento
+    useFinancing: false,
+    interestRate: 4.5,
+    loanTermYears: 20,
   });
 
   const [result, setResult] = useState<CalculationResult | null>(null);
 
+  // Función para calcular pago mensual del préstamo
+  const calculateMortgagePayment = (principal: number, annualRate: number, years: number): number => {
+    if (annualRate === 0) return principal / (years * 12);
+    
+    const monthlyRate = annualRate / 100 / 12;
+    const numPayments = years * 12;
+    const monthlyPayment = principal * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / 
+                          (Math.pow(1 + monthlyRate, numPayments) - 1);
+    return monthlyPayment;
+  };
+
   const calculateROI = () => {
-    const totalInvestment = values.downPayment + values.renovationCosts;
+    let totalInvestment: number;
+    let monthlyExpenses: number;
+    let monthlyMortgagePayment: number | undefined;
+    let totalMortgageAmount: number | undefined;
+
+    if (values.useFinancing) {
+      // Con financiamiento
+      const loanAmount = values.propertyPrice - values.downPayment;
+      totalMortgageAmount = loanAmount;
+      monthlyMortgagePayment = calculateMortgagePayment(loanAmount, values.interestRate, values.loanTermYears);
+      totalInvestment = values.downPayment + values.renovationCosts;
+      monthlyExpenses = values.monthlyExpenses + (values.annualTaxes / 12) + (values.insurance / 12) + monthlyMortgagePayment;
+    } else {
+      // Sin financiamiento (pago completo)
+      totalInvestment = values.propertyPrice + values.renovationCosts;
+      monthlyExpenses = values.monthlyExpenses + (values.annualTaxes / 12) + (values.insurance / 12);
+    }
+
     const monthlyIncome = values.monthlyRent;
-    const monthlyExpenses = values.monthlyExpenses + (values.annualTaxes / 12) + (values.insurance / 12);
     const monthlyProfit = monthlyIncome - monthlyExpenses;
     const annualProfit = monthlyProfit * 12;
     const roi = (annualProfit / totalInvestment) * 100;
@@ -42,6 +76,8 @@ export function ROICalculator() {
       roi,
       breakEvenMonths,
       totalInvestment,
+      monthlyMortgagePayment,
+      totalMortgageAmount,
     });
   };
 
@@ -155,6 +191,60 @@ export function ROICalculator() {
             </div>
           </div>
           
+          {/* Sección de Financiamiento */}
+          <div className="space-y-4 p-4 rounded-lg border bg-card">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <CreditCard className="h-5 w-5 text-primary" />
+                <Label htmlFor="useFinancing" className="text-base font-medium">
+                  Usar Financiamiento Hipotecario
+                </Label>
+              </div>
+              <Switch
+                id="useFinancing"
+                checked={values.useFinancing}
+                onCheckedChange={(checked) => 
+                  setValues(prev => ({ ...prev, useFinancing: checked }))
+                }
+              />
+            </div>
+            
+            {values.useFinancing && (
+              <div className="grid md:grid-cols-2 gap-4 pt-2">
+                <div className="space-y-2">
+                  <Label htmlFor="interestRate">Tasa de Interés Anual (%)</Label>
+                  <Input
+                    id="interestRate"
+                    type="number"
+                    step="0.1"
+                    value={values.interestRate}
+                    onChange={(e) => handleInputChange('interestRate', e.target.value)}
+                    placeholder="4.5"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="loanTermYears">Plazo del Préstamo (años)</Label>
+                  <Input
+                    id="loanTermYears"
+                    type="number"
+                    value={values.loanTermYears}
+                    onChange={(e) => handleInputChange('loanTermYears', e.target.value)}
+                    placeholder="20"
+                  />
+                </div>
+                
+                <div className="md:col-span-2 p-3 rounded bg-muted">
+                  <p className="text-sm text-muted-foreground">
+                    Monto del préstamo: <span className="font-semibold">
+                      {formatCurrency(values.propertyPrice - values.downPayment)}
+                    </span>
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+          
           <Button 
             onClick={calculateROI} 
             variant="gradient" 
@@ -213,6 +303,22 @@ export function ROICalculator() {
                 <span className="text-sm text-muted-foreground">Inversión Total</span>
                 <span className="font-semibold">{formatCurrency(result.totalInvestment)}</span>
               </div>
+              
+              {result.monthlyMortgagePayment && (
+                <div className="flex justify-between items-center p-3 rounded-lg bg-card border">
+                  <span className="text-sm text-muted-foreground">Pago Hipoteca Mensual</span>
+                  <span className="font-semibold text-destructive">
+                    {formatCurrency(result.monthlyMortgagePayment)}
+                  </span>
+                </div>
+              )}
+              
+              {result.totalMortgageAmount && (
+                <div className="flex justify-between items-center p-3 rounded-lg bg-card border">
+                  <span className="text-sm text-muted-foreground">Monto del Préstamo</span>
+                  <span className="font-semibold">{formatCurrency(result.totalMortgageAmount)}</span>
+                </div>
+              )}
               
               <div className="flex justify-between items-center p-3 rounded-lg bg-card border">
                 <span className="text-sm text-muted-foreground">Break-even</span>
