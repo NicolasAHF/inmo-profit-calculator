@@ -1,7 +1,7 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calculator, TrendingUp, DollarSign, Home } from "lucide-react";
+import { Calculator, Trash2, Home } from "lucide-react"; // Importamos Trash2
 
 interface PropertyCardProps {
   title: string;
@@ -10,66 +10,55 @@ interface PropertyCardProps {
   roi: number;
   location: string;
   onAnalyze: () => void;
+  onDelete: () => void; // Añadimos la prop para borrar
 }
 
-export function PropertyCard({ title, price, monthlyRent, roi, location, onAnalyze }: PropertyCardProps) {
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-ES', {
-      style: 'currency',
-      currency: 'EUR',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
-
-  const getRoiBadgeColor = (roi: number) => {
-    if (roi >= 8) return "bg-success text-success-foreground";
-    if (roi >= 5) return "bg-warning text-warning-foreground";
-    return "bg-destructive text-destructive-foreground";
-  };
+export function PropertyCard({ title, price, monthlyRent, roi, location, onAnalyze, onDelete }: PropertyCardProps) {
+  const formatCurrency = (amount) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0 }).format(amount);
+  const getRoiBadgeColor = (roi) => roi >= 8 ? "bg-green-100 text-green-800" : roi >= 5 ? "bg-yellow-100 text-yellow-800" : "bg-red-100 text-red-800";
 
   return (
-    <Card className="hover:shadow-elegant transition-smooth animate-fade-in">
-      <CardHeader className="pb-3">
+    <Card className="flex flex-col justify-between hover:shadow-lg transition-shadow duration-300">
+      <CardHeader>
         <div className="flex items-start justify-between">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <Home className="h-5 w-5 text-primary" />
-            <CardTitle className="text-lg">{title}</CardTitle>
+            <div>
+                <CardTitle className="text-lg">{title}</CardTitle>
+                <p className="text-sm text-muted-foreground">{location}</p>
+            </div>
           </div>
-          <Badge className={getRoiBadgeColor(roi)}>
+          <Badge className={`${getRoiBadgeColor(roi)} font-semibold`}>
             {roi.toFixed(1)}% ROI
           </Badge>
         </div>
-        <p className="text-sm text-muted-foreground">{location}</p>
       </CardHeader>
       
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
+      <CardContent className="pt-0">
+        <div className="grid grid-cols-2 gap-4 border-t pt-4">
           <div className="space-y-1">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <DollarSign className="h-4 w-4" />
-              Precio
-            </div>
-            <p className="font-semibold">{formatCurrency(price)}</p>
+            <p className="text-sm text-muted-foreground">Precio</p>
+            <p className="font-semibold text-lg">{formatCurrency(price)}</p>
           </div>
-          
           <div className="space-y-1">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <TrendingUp className="h-4 w-4" />
-              Renta mensual
-            </div>
-            <p className="font-semibold text-success">{formatCurrency(monthlyRent)}</p>
+            <p className="text-sm text-muted-foreground">Renta mensual</p>
+            <p className="font-semibold text-lg text-green-600">{formatCurrency(monthlyRent)}</p>
           </div>
         </div>
-        
+      </CardContent>
+
+      <CardFooter className="flex gap-2">
         <Button 
           onClick={onAnalyze} 
-          variant="hero" 
-          className="w-full"
+          className="w-full bg-blue-500 hover:bg-blue-600 text-white"
         >
-          <Calculator className="h-4 w-4" />
-          Analizar Inversión
+          <Calculator className="h-4 w-4 mr-2" />
+          Analizar
         </Button>
-      </CardContent>
+        <Button onClick={onDelete} variant="outline" size="icon">
+            <Trash2 className="h-4 w-4 text-destructive" />
+        </Button>
+      </CardFooter>
     </Card>
   );
 }

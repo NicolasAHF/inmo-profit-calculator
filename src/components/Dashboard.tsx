@@ -1,144 +1,96 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, DollarSign, PieChart, Calculator, Home, Target } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { TrendingUp, DollarSign, PieChart, Target, Briefcase, Calculator, Trash2 } from "lucide-react";
 
-export function Dashboard() {
+export function Dashboard({ properties = [], recentAnalyses = [], onDeleteAnalysis }) {
+  
+  const totalProperties = properties.length;
+  const averageROI = properties.length > 0 ? properties.reduce((acc, p) => acc + p.roi, 0) / properties.length : 0;
+  const monthlyIncome = properties.reduce((acc, p) => acc + p.monthlyRent, 0);
+  const portfolioValue = properties.reduce((acc, p) => acc + p.price, 0);
+
   const portfolioMetrics = [
-    {
-      title: "Propiedades en Cartera",
-      value: "12",
-      icon: Home,
-      color: "text-primary",
-    },
-    {
-      title: "ROI Promedio",
-      value: "7.8%",
-      icon: TrendingUp,
-      color: "text-success",
-    },
-    {
-      title: "Ingresos Mensuales",
-      value: "€8,450",
-      icon: DollarSign,
-      color: "text-accent",
-    },
-    {
-      title: "Valor Total Portfolio",
-      value: "€1.2M",
-      icon: PieChart,
-      color: "text-primary",
-    },
+    { title: "Propiedades en Cartera", value: totalProperties, icon: Briefcase },
+    { title: "ROI Promedio", value: `${averageROI.toFixed(1)}%`, icon: TrendingUp },
+    { title: "Ingresos Mensuales", value: `€${monthlyIncome.toLocaleString('es-ES')}`, icon: DollarSign },
+    { title: "Valor Total Portfolio", value: `€${(portfolioValue / 1000000).toFixed(1)}M`, icon: PieChart },
   ];
 
-  const recentAnalysis = [
-    {
-      property: "Apartamento Centro Madrid",
-      roi: 8.2,
-      investment: 45000,
-      monthlyReturn: 320,
-    },
-    {
-      property: "Casa Unifamiliar Barcelona", 
-      roi: 6.8,
-      investment: 75000,
-      monthlyReturn: 425,
-    },
-    {
-      property: "Estudio Malasaña",
-      roi: 9.1,
-      investment: 35000,
-      monthlyReturn: 280,
-    },
-  ];
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-ES', {
-      style: 'currency',
-      currency: 'EUR',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
-
-  const getRoiBadgeColor = (roi: number) => {
-    if (roi >= 8) return "bg-success text-success-foreground";
-    if (roi >= 5) return "bg-warning text-warning-foreground";
-    return "bg-destructive text-destructive-foreground";
-  };
+  const formatCurrency = (amount) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0 }).format(amount);
+  const getRoiBadgeColor = (roi) => roi >= 8 ? "bg-green-100 text-green-800" : roi >= 5 ? "bg-yellow-100 text-yellow-800" : "bg-red-100 text-red-800";
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Métricas principales */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {portfolioMetrics.map((metric, index) => (
-          <Card key={index} className="animate-fade-in hover:shadow-elegant transition-smooth">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {metric.title}
-              </CardTitle>
-              <metric.icon className={`h-4 w-4 ${metric.color}`} />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{metric.value}</div>
+          <Card key={index}>
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">{metric.title}</p>
+                <p className="text-2xl font-bold">{metric.value}</p>
+              </div>
+              <div className="p-3 rounded-full bg-slate-100">
+                 <metric.icon className="h-6 w-6 text-primary" />
+              </div>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {/* Gráfico de rendimiento */}
-      <Card className="animate-fade-in">
+      {/* Análisis Recientes */}
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Target className="h-5 w-5 text-primary" />
             Análisis Recientes
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {recentAnalysis.map((analysis, index) => (
-              <div 
-                key={index}
-                className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-muted/50 transition-smooth"
-              >
-                <div className="space-y-1">
-                  <p className="font-medium">{analysis.property}</p>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <span>Inversión: {formatCurrency(analysis.investment)}</span>
-                    <span>•</span>
-                    <span>Retorno mensual: {formatCurrency(analysis.monthlyReturn)}</span>
-                  </div>
+        <CardContent className="space-y-2">
+            {recentAnalyses.length > 0 ? (
+                recentAnalyses.map((analysis) => (
+                <div key={analysis.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 group">
+                    <div>
+                        <p className="font-medium">{analysis.property}</p>
+                        <p className="text-sm text-muted-foreground">
+                            Inversión: {formatCurrency(analysis.investment)} • Retorno mensual: {formatCurrency(analysis.monthlyReturn)}
+                        </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Badge className={`${getRoiBadgeColor(analysis.roi)} font-semibold`}>
+                            {analysis.roi.toFixed(1)}% ROI
+                        </Badge>
+                        {/* BOTÓN DE BORRADO */}
+                        <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100" onClick={() => onDeleteAnalysis(analysis.id)}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                    </div>
                 </div>
-                <Badge className={getRoiBadgeColor(analysis.roi)}>
-                  {analysis.roi.toFixed(1)}% ROI
-                </Badge>
-              </div>
-            ))}
-          </div>
+                ))
+            ) : (
+                <p className="text-muted-foreground text-center py-4">No hay análisis recientes. Guarda uno desde la calculadora.</p>
+            )}
         </CardContent>
       </Card>
 
       {/* Tips de inversión */}
-      <Card className="animate-fade-in">
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Calculator className="h-5 w-5 text-primary" />
             Consejos de Inversión
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="space-y-2 p-4 rounded-lg bg-gradient-primary">
-              <h4 className="font-semibold text-primary-foreground">ROI Objetivo</h4>
-              <p className="text-sm text-primary-foreground/80">
-                Busca propiedades con ROI superior al 6% para inversiones rentables.
-              </p>
+        <CardContent className="grid md:grid-cols-2 gap-4">
+            <div className="p-4 rounded-lg bg-blue-500 text-white">
+              <h4 className="font-semibold">ROI Objetivo</h4>
+              <p className="text-sm opacity-90">Busca propiedades con ROI superior al 6% para inversiones rentables.</p>
             </div>
-            <div className="space-y-2 p-4 rounded-lg bg-gradient-success">
-              <h4 className="font-semibold text-success-foreground">Diversificación</h4>
-              <p className="text-sm text-success-foreground/80">
-                Invierte en diferentes tipos de propiedades y ubicaciones para reducir riesgos.
-              </p>
+            <div className="p-4 rounded-lg bg-green-500 text-white">
+              <h4 className="font-semibold">Diversificación</h4>
+              <p className="text-sm opacity-90">Invierte en diferentes tipos de propiedades y ubicaciones para reducir riesgos.</p>
             </div>
-          </div>
         </CardContent>
       </Card>
     </div>
