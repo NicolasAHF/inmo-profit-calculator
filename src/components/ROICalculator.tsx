@@ -4,11 +4,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Calculator, CreditCard, Save } from "lucide-react";
+import { Calculator, CreditCard, Save, BarChart2 } from "lucide-react";
 import ROIProjectionChart from "@/components/ROIProjectionChart";
 import InvestmentComparisonChart from "@/components/InvestmentComparisonChart";
 import CashFlowChart from "@/components/CashFlowChart";
 import { useAuth } from "@/contexts/AuthContext";
+import { PropertyRecommender } from "@/components/PropertyRecommender";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 // La prop onSaveAnalysis ya no es necesaria aquí, usaremos el contexto directamente
 export function ROICalculator({ values, setValues, result, setResult, onSaveAnalysis }) {
@@ -106,7 +113,6 @@ export function ROICalculator({ values, setValues, result, setResult, onSaveAnal
                             <Calculator className="h-5 w-5 text-primary" />
                             Property Investment Details
                         </span>
-                        {/* CAMBIO AQUÍ: Usamos `user` del hook en lugar de `isLoggedIn` */}
                         {user && (
                             <Button onClick={onSaveAnalysis} size="sm" variant="outline">
                                 <Save className="h-4 w-4 mr-2" />
@@ -185,77 +191,90 @@ export function ROICalculator({ values, setValues, result, setResult, onSaveAnal
 
             {result && (
                 <div className="lg:col-span-2 space-y-6">
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    <Card className="bg-green-100 dark:bg-green-900 border-green-200 dark:border-green-800">
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-sm font-medium text-green-800 dark:text-green-200">Monthly Cash Flow</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-2xl font-bold text-green-700 dark:text-green-100">{formatCurrency(result.monthlyCashFlow)}</p>
-                            <p className="text-xs text-muted-foreground">After all expenses</p>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-sm font-medium">Net Rental Yield</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-2xl font-bold">{formatPercent(result.netRentalYield)}</p>
-                            <p className="text-xs text-muted-foreground">Annual return on investment</p>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-sm font-medium">Break-even Time</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-2xl font-bold text-red-600 dark:text-red-400">{isFinite(result.breakEvenTime) ? `${formatNumber(result.breakEvenTime)} years` : 'N/A'}</p>
-                            <p className="text-xs text-muted-foreground">Time to recover investment</p>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-sm font-medium">Total Investment</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-2xl font-bold">{formatCurrency(result.totalInvestment)}</p>
-                            <p className="text-xs text-muted-foreground">Purchase + closing costs</p>
-                        </CardContent>
-                    </Card>
-                </div>
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        <Card className="bg-green-100 dark:bg-green-900 border-green-200 dark:border-green-800">
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-sm font-medium text-green-800 dark:text-green-200">Monthly Cash Flow</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-2xl font-bold text-green-700 dark:text-green-100">{formatCurrency(result.monthlyCashFlow)}</p>
+                                <p className="text-xs text-muted-foreground">After all expenses</p>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-sm font-medium">Net Rental Yield</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-2xl font-bold">{formatPercent(result.netRentalYield)}</p>
+                                <p className="text-xs text-muted-foreground">Annual return on investment</p>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-sm font-medium">Break-even Time</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-2xl font-bold text-red-600 dark:text-red-400">{isFinite(result.breakEvenTime) ? `${formatNumber(result.breakEvenTime)} years` : 'N/A'}</p>
+                                <p className="text-xs text-muted-foreground">Time to recover investment</p>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-sm font-medium">Total Investment</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-2xl font-bold">{formatCurrency(result.totalInvestment)}</p>
+                                <p className="text-xs text-muted-foreground">Purchase + closing costs</p>
+                            </CardContent>
+                        </Card>
+                    </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-sm font-medium">5-Year ROI</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-2xl font-bold">{formatPercent(result.roi5Year)}</p>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-sm font-medium">10-Year ROI</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-2xl font-bold">{formatPercent(result.roi10Year)}</p>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-sm font-medium">15-Year ROI</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-2xl font-bold">{formatPercent(result.roi15Year)}</p>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <ROIProjectionChart data={result.roiProjection} />
-                    <InvestmentComparisonChart data={result.netRentalYield} />
-                </div>
-                <CashFlowChart data={result.roiProjection} />
+                    <PropertyRecommender result={result} values={values} />
+                    
+                    <Accordion type="single" collapsible className="w-full">
+                      <AccordionItem value="item-1">
+                        <AccordionTrigger>
+                          <div className="flex items-center gap-2">
+                            <BarChart2 className="h-4 w-4" />
+                            Ver gráficos detallados
+                          </div>
+                        </AccordionTrigger>
+                        <AccordionContent className="space-y-6 pt-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                              <Card>
+                                  <CardHeader className="pb-2">
+                                      <CardTitle className="text-sm font-medium">5-Year ROI</CardTitle>
+                                  </CardHeader>
+                                  <CardContent>
+                                      <p className="text-2xl font-bold">{formatPercent(result.roi5Year)}</p>
+                                  </CardContent>
+                              </Card>
+                              <Card>
+                                  <CardHeader className="pb-2">
+                                      <CardTitle className="text-sm font-medium">10-Year ROI</CardTitle>
+                                  </CardHeader>
+                                  <CardContent>
+                                      <p className="text-2xl font-bold">{formatPercent(result.roi10Year)}</p>
+                                  </CardContent>
+                              </Card>
+                              <Card>
+                                  <CardHeader className="pb-2">
+                                      <CardTitle className="text-sm font-medium">15-Year ROI</CardTitle>
+                                  </CardHeader>
+                                  <CardContent>
+                                      <p className="text-2xl font-bold">{formatPercent(result.roi15Year)}</p>
+                                  </CardContent>
+                              </Card>
+                          </div>
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                              <ROIProjectionChart data={result.roiProjection} />
+                              <InvestmentComparisonChart data={result.netRentalYield} />
+                          </div>
+                          <CashFlowChart data={result.roiProjection} />
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
                 </div>
             )}
         </div>

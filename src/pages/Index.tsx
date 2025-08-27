@@ -10,6 +10,7 @@ import { Calculator, TrendingUp, Home, PlusCircle, SlidersHorizontal, LogIn, Use
 import heroImage from "@/assets/hero-investment.jpg";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { PropertyRecommender } from "@/components/PropertyRecommender";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("calculator");
