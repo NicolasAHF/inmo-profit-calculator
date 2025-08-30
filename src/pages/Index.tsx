@@ -7,10 +7,8 @@ import { Simulation } from "@/components/Simulation";
 import { Dashboard } from "@/components/Dashboard";
 import { AddPropertyModal } from "@/components/AddPropertyModal";
 import { Calculator, TrendingUp, Home, PlusCircle, SlidersHorizontal, LogIn, UserPlus, LogOut } from "lucide-react";
-import heroImage from "@/assets/hero-investment.jpg";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { PropertyRecommender } from "@/components/PropertyRecommender";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("calculator");
@@ -151,11 +149,6 @@ const Index = () => {
               </>
             )}
           </div>
-          <img 
-            src={heroImage} 
-            alt="Real Estate Investment" 
-            className="absolute inset-0 w-full h-full object-cover opacity-20"
-          />
           <div className="relative z-10 container mx-auto px-4 h-full flex items-center">
             <div className="max-w-2xl text-primary-foreground">
               <h1 className="text-5xl font-bold mb-4 animate-fade-in">
